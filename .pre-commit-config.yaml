@@ -1,0 +1,109 @@
+# Run on demand with: pre-commit run --all-files
+# Install the git hook with: pre-commit install
+#
+# The Python tools run as `system` hooks so they use the versions pinned in
+# pyproject.toml's [dev] extra (one source of version truth). Install them
+# first with: pip install -e ".[dev]"
+minimum_pre_commit_version: "3.8.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  - repo: local
+    hooks:
+      # --- fixers (order matters: lint-fix, then imports, then format) ---
+      - id: ruff
+        name: ruff (lint + autofix)
+        entry: ruff check --fix
+        language: system
+        types: [python]
+      - id: isort
+        name: isort
+        entry: isort
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+      # mdformat is markdown's ruff-format equivalent: the single rewriter.
+      # --number keeps real ordinal numbers (1. 2. 3.) instead of flattening
+      # to "1." everywhere — prompts/*.md are read as raw text by the model,
+      # not rendered, so real sequence numbers matter there. --wrap 88 matches
+      # pymarkdown's MD013 line_length below.
+      - id: mdformat
+        name: mdformat
+        entry: mdformat --number --wrap 88
+        language: system
+        types: [markdown]
+      # --- checkers ---
+      # black verifies ruff format's output stays black-compatible (no rewrite).
+      - id: black
+        name: black (verify)
+        entry: black --check
+        language: system
+        types: [python]
+      - id: flake8
+        name: flake8
+        entry: flake8
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: bandit
+        name: bandit
+        entry: bandit -q -c pyproject.toml -r src
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: interrogate
+        name: interrogate (docstring coverage)
+        entry: interrogate -c pyproject.toml src
+        language: system
+        types: [python]
+        pass_filenames: false
+      # docstring conventions (PEP 257 content/format rules), kept alongside
+      # ruff's D rules — same overlap pattern as flake8/black/bandit above.
+      - id: pydocstyle
+        name: pydocstyle
+        entry: pydocstyle src
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: codespell
+        name: codespell
+        entry: codespell
+        language: system
+        pass_filenames: false
+      # structure (headings, fences, duplicate content) — config in .pymarkdown.json
+      - id: pymarkdown
+        name: pymarkdown (structure)
+        entry: pymarkdown -c .pymarkdown.json scan
+        language: system
+        types: [markdown]
+      # prose quality (weasel words, clichés, jargon) — config in .proselintrc.json
+      - id: proselint
+        name: proselint (prose quality)
+        entry: proselint check
+        language: system
+        types: [markdown]
