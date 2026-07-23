@@ -5,8 +5,6 @@ API request is made until ``invoke`` — so this validates the whole assembly
 (model, tools, system prompt, response_format) with a dummy key.
 """
 
-from __future__ import annotations
-
 from agent_classifier.agent import build_agent, default_model
 
 

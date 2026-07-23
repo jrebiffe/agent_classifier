@@ -9,8 +9,6 @@ replace :func:`lookup_mcp_server` with a live registry / web-search lookup; the
 agent wiring in ``agent.py`` does not care how these tools are implemented.
 """
 
-from __future__ import annotations
-
 from langchain_core.tools import tool
 
 # name fragment -> capability + risk summary. Keys are matched loosely.

@@ -1,23 +1,23 @@
-"""Nox sessions mirroring CI. Run everything with ``nox``; a single session
-with e.g. ``nox -s tests``.
-"""
+"""Nox sessions mirroring CI.
 
-from __future__ import annotations
+Run everything with ``nox``, or a single session with e.g. ``nox -s tests``.
+"""
 
 import nox
 
 nox.options.sessions = ["lint", "typecheck", "security", "deps", "docs", "tests"]
 nox.options.reuse_existing_virtualenvs = True
 
-PYTHON = "3.11"
+PYTHON = "3.13"
 PATHS = ("src", "tests")
 
 
 @nox.session(python=PYTHON)
 def lint(session: nox.Session) -> None:
-    """Ruff + flake8 lint and black/isort formatting checks."""
+    """Run ruff (lint + format check), flake8, black --check, and isort."""
     session.install("-e", ".[dev]")
     session.run("ruff", "check", *PATHS)
+    session.run("ruff", "format", "--check", *PATHS)
     session.run("flake8", *PATHS)
     session.run("black", "--check", *PATHS)
     session.run("isort", "--check-only", *PATHS)
@@ -25,7 +25,7 @@ def lint(session: nox.Session) -> None:
 
 @nox.session(python=PYTHON)
 def typecheck(session: nox.Session) -> None:
-    """Static type checking with mypy."""
+    """Run mypy static type checking."""
     session.install("-e", ".[dev]")
     session.run("mypy")
 

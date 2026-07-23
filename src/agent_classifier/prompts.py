@@ -5,8 +5,6 @@ DeepAgents default harness prompt. ``USER_INSTRUCTION`` is the per-run task
 message that points the agent at the artifacts on its virtual filesystem.
 """
 
-from __future__ import annotations
-
 SYSTEM_PROMPT = """\
 You are **Classifier**, an agent that analyses *other* AI agents and produces a \
 structured classification of them.

@@ -10,8 +10,6 @@ Expectations are deliberately soft (membership / thresholds), since exact
 wording will vary between model runs.
 """
 
-from __future__ import annotations
-
 import os
 from pathlib import Path
 

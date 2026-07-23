@@ -7,8 +7,6 @@ model as part of the schema, so they double as instructions — keep them tight.
 The enums come from ``taxonomy.py``; edit that module to reshape the output.
 """
 
-from __future__ import annotations
-
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -22,8 +20,10 @@ from .taxonomy import (
     Severity,
 )
 
-GoalKind = Literal["primary", "secondary", "implicit"]
-CapabilitySource = Literal["instructions", "mcp_server", "skill", "tool", "inferred"]
+type GoalKind = Literal["primary", "secondary", "implicit"]
+type CapabilitySource = Literal[
+    "instructions", "mcp_server", "skill", "tool", "inferred"
+]
 
 
 class Goal(BaseModel):

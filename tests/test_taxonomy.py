@@ -1,7 +1,5 @@
 """Sanity checks on the taxonomy enums."""
 
-from __future__ import annotations
-
 import pytest
 
 from agent_classifier.taxonomy import (

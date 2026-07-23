@@ -9,8 +9,6 @@ Every enum member's value is the exact string the model must produce, so keep
 values short, lowercase, and stable.
 """
 
-from __future__ import annotations
-
 from enum import StrEnum
 
 

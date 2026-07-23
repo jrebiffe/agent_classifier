@@ -35,6 +35,8 @@ input (dir / text / json)                      structured output
 
 ## Install
 
+Requires **Python 3.13+**.
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e .            # add ".[dev]" for the test dependencies
@@ -111,13 +113,15 @@ The stack, and who owns what:
 
 | Concern | Tools |
 |---|---|
-| Format | **black** (the one formatter) + **isort** (`profile = black`) |
-| Lint | **ruff** and **flake8** (both lint; ruff's formatter and `I` rules are off so they don't fight black/isort) |
-| Types | **mypy** (scoped to `src`) |
+| Format | **ruff format** (the formatter) + **isort** (`profile = black`); **black --check** verifies ruff's output stays black-compatible |
+| Lint | **ruff** and **flake8** (both lint; ruff's `I` rules are off so isort owns imports) |
+| Types | **mypy** (`strict`, scoped to `src`); the package ships a `py.typed` marker |
 | Security | **bandit** + ruff's `S` rules (code) · **pip-audit** (dependency CVEs) · **detect-secrets** (secret scanning) |
 | Deps & docs | **deptry** (unused/missing deps) · **interrogate** (100% docstring coverage) · **codespell** (typos) |
-| Tests | **pytest** + **pytest-cov** (coverage gate: 80%) |
+| Tests | **pytest** + **pytest-cov** (coverage gate: 90%) + **hypothesis** (property-based) |
 
+CI (`.github/workflows/quality.yml`) runs the whole thing on a **Python 3.13 &
+3.14 matrix**, and **Dependabot** keeps dependencies and Actions up to date.
 Configuration for every tool lives in `pyproject.toml`; the pre-commit hooks run
 the versions pinned in the `[dev]` extra so local, hook, and CI runs match.
 

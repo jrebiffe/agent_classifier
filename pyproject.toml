@@ -7,7 +7,7 @@ name = "agent-classifier"
 version = "0.1.0"
 description = "A DeepAgents-based Classifier that analyses AI agents and emits a structured classification."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { file = "LICENSE" }
 dependencies = [
     "deepagents>=0.6,<0.7",
@@ -21,6 +21,7 @@ dependencies = [
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
+    "hypothesis>=6.100",
     "ruff>=0.6",
     "black>=24.8",
     "isort>=5.13",
@@ -57,7 +58,7 @@ branch = true
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 80
+fail_under = 90
 exclude_lines = [
     "pragma: no cover",
     "if __name__ == .__main__.:",
@@ -65,32 +66,62 @@ exclude_lines = [
 ]
 
 # ---------------------------------------------------------------------------
-# Ruff — primary linter. black owns formatting, isort owns imports, so ruff's
-# formatter and its isort (I) rules stay off to avoid fighting them.
+# Ruff — primary linter AND formatter. isort owns imports; black stays as a
+# --check-only verifier, so ruff format is the single rewriter alongside isort.
 # ---------------------------------------------------------------------------
 [tool.ruff]
 line-length = 88
-target-version = "py311"
+target-version = "py313"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "B", "C4", "UP", "SIM", "S", "RUF"]
-# E501 (line length) is black's job; E203 is black-incompatible.
-ignore = ["E501", "E203"]
+select = [
+    "E", "F", "W",   # pycodestyle + pyflakes
+    "B",             # flake8-bugbear
+    "C4",            # flake8-comprehensions
+    "C90",           # mccabe complexity
+    "UP",            # pyupgrade (modern syntax)
+    "FURB",          # refurb (modernisation)
+    "SIM",           # flake8-simplify
+    "RET",           # flake8-return
+    "ARG",           # unused arguments
+    "PTH",           # use pathlib
+    "PT",            # flake8-pytest-style
+    "TID",           # tidy imports
+    "N",             # pep8-naming
+    "PERF",          # perflint
+    "PL",            # pylint
+    "S",             # flake8-bandit
+    "D",             # pydocstyle
+    "RUF",           # ruff-specific
+]
+# E501 (line length) is black/ruff-format's job; E203 is formatter-incompatible;
+# PLC0415 would flag our intentional lazy/deferred imports.
+ignore = ["E501", "E203", "PLC0415"]
 
 [tool.ruff.lint.per-file-ignores]
-# tests legitimately use asserts and dummy credentials.
-"tests/**" = ["S101", "S105", "S106"]
+# tests use asserts, dummy creds, magic values, unused lambda args, and don't
+# need docstrings (interrogate excludes them too).
+"tests/**" = ["S101", "S105", "S106", "D", "ARG", "PLR2004", "PLR0913"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.format]
+docstring-code-format = true
 
 # ---------------------------------------------------------------------------
-# Black — the single code formatter.
+# Black — kept as a --check-only verifier of ruff format's output.
 # ---------------------------------------------------------------------------
 [tool.black]
 line-length = 88
-target-version = ["py311"]
+target-version = ["py313"]
 
 # ---------------------------------------------------------------------------
-# isort — the single import sorter (black-compatible).
+# isort — the single import sorter (black/ruff-format compatible).
 # ---------------------------------------------------------------------------
 [tool.isort]
 profile = "black"
@@ -103,25 +134,17 @@ known_first_party = ["agent_classifier"]
 # ---------------------------------------------------------------------------
 [tool.flake8]
 max-line-length = 88
-# E203/E501/W503 defer to black; the rest overlaps ruff intentionally.
 extend-ignore = ["E203", "E501", "W503"]
 exclude = [".git", "__pycache__", ".venv", "build", "dist"]
 
 # ---------------------------------------------------------------------------
-# mypy — type checker, scoped to the package.
+# mypy — strict type checking, scoped to the package.
 # ---------------------------------------------------------------------------
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 files = ["src"]
 plugins = ["pydantic.mypy"]
-check_untyped_defs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_return_any = true
-warn_unused_configs = true
+strict = true
 
 [[tool.mypy.overrides]]
 module = ["deepagents.*", "langgraph.*"]

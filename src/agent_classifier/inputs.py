@@ -6,8 +6,6 @@ DeepAgents virtual filesystem expects: ``{path: FileData}``, passed as the
 ``files`` key when the agent is invoked.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 from typing import Any
@@ -160,9 +158,14 @@ def load_input(source: str | Path | dict[str, Any]) -> dict[str, Any]:
         return from_text(text, name=f"/agent/{source.name}")
 
     if isinstance(source, str):
-        p = Path(source)
-        if p.exists():
-            return load_input(p)
+        try:
+            is_path = Path(source).exists()
+        except (OSError, ValueError):
+            # e.g. an embedded null byte or an over-long path: it's not a path,
+            # so treat the string as raw agent text.
+            is_path = False
+        if is_path:
+            return load_input(Path(source))
         return from_text(source)
 
     raise TypeError(f"Unsupported input source type: {type(source)!r}")

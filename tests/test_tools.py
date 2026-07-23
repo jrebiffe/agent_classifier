@@ -1,7 +1,5 @@
 """The enrichment lookup tools."""
 
-from __future__ import annotations
-
 from agent_classifier.tools import ENRICHMENT_TOOLS, lookup_mcp_server, lookup_skill
 
 

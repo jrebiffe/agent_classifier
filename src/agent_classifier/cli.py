@@ -8,8 +8,6 @@ Examples::
     agent-classifier ./agent -o result.json      # write JSON to a file
 """
 
-from __future__ import annotations
-
 import argparse
 import sys
 from pathlib import Path
@@ -49,9 +47,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the classifier from the command line and print/write JSON."""
-    # Imported lazily so `--help` works without the heavy agent stack.
-    from .agent import classify
-
     args = build_parser().parse_args(argv)
 
     if args.source == "-":
@@ -64,6 +59,10 @@ def main(argv: list[str] | None = None) -> int:
         if not source.exists():
             print(f"error: no such path: {source}", file=sys.stderr)
             return 2
+
+    # Imported here so `--help` and the error paths above never pay for loading
+    # the heavy agent / deepagents stack.
+    from .agent import classify
 
     result = classify(
         source,

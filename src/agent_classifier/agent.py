@@ -10,8 +10,6 @@ add specialist ``subagents`` (goal-analyst / risk-assessor / domain-classifier)
 to ``create_deep_agent`` — the input/output contract below stays the same.
 """
 
-from __future__ import annotations
-
 import os
 from typing import Any, cast
 
