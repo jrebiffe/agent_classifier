@@ -80,3 +80,18 @@ def test_load_input_dispatch(tmp_path):
     blob = load_input("just some instructions, not a path")
     (data,) = blob.values()
     assert "instructions" in _content(data)
+
+
+def test_load_input_falls_back_to_text_when_matching_dir_has_no_artifacts(
+    tmp_path, monkeypatch
+):
+    # A string can coincidentally name a real directory (e.g. a stray
+    # __pycache__ in the caller's cwd) that holds nothing readable as an
+    # agent artifact. That must fall back to raw text, not raise.
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "empty_dir").mkdir()
+    (tmp_path / "empty_dir" / "binary.pyc").write_bytes(b"\x00\x01")
+
+    files = load_input("empty_dir")
+    (data,) = files.values()
+    assert _content(data) == "empty_dir"

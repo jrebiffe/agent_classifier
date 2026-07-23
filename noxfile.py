@@ -3,13 +3,39 @@
 Run everything with ``nox``, or a single session with e.g. ``nox -s tests``.
 """
 
+import shutil
+import subprocess
+
 import nox
 
-nox.options.sessions = ["lint", "typecheck", "security", "deps", "docs", "tests"]
+nox.options.sessions = [
+    "lint",
+    "typecheck",
+    "security",
+    "deps",
+    "docs",
+    "markdown",
+    "tests",
+]
 nox.options.reuse_existing_virtualenvs = True
 
 PYTHON = "3.13"
 PATHS = ("src", "tests")
+
+
+def _markdown_files() -> list[str]:
+    # git-tracked only, so caches/build artifacts (e.g. .pytest_cache/README.md)
+    # never leak in — the same universe pre-commit's `types: [markdown]` lints.
+    git = shutil.which("git")
+    if git is None:
+        raise RuntimeError("git executable not found on PATH")
+    out = subprocess.run(  # noqa: S603 — fixed argv, no external input
+        [git, "ls-files", "*.md"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return sorted(out.splitlines())
 
 
 @nox.session(python=PYTHON)
@@ -50,6 +76,16 @@ def docs(session: nox.Session) -> None:
     """Docstring coverage with interrogate."""
     session.install("-e", ".[dev]")
     session.run("interrogate", "-c", "pyproject.toml", "src")
+
+
+@nox.session(python=PYTHON)
+def markdown(session: nox.Session) -> None:
+    """Check Markdown formatting, structure, and prose quality."""
+    session.install("-e", ".[dev]")
+    md_files = _markdown_files()
+    session.run("mdformat", "--number", "--check", *md_files)
+    session.run("pymarkdown", "-c", ".pymarkdown.json", "scan", *md_files)
+    session.run("proselint", "check", *md_files)
 
 
 @nox.session(python=PYTHON)

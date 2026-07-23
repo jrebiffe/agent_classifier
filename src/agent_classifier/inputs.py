@@ -159,13 +159,21 @@ def load_input(source: str | Path | dict[str, Any]) -> dict[str, Any]:
 
     if isinstance(source, str):
         try:
-            is_path = Path(source).exists()
+            path = Path(source)
+            is_path = path.exists()
         except (OSError, ValueError):
             # e.g. an embedded null byte or an over-long path: it's not a path,
             # so treat the string as raw agent text.
             is_path = False
         if is_path:
-            return load_input(Path(source))
+            try:
+                return load_input(path)
+            except ValueError:
+                # The string coincidentally names a real directory (e.g. a
+                # stray __pycache__) that holds nothing readable as an agent
+                # artifact. Fall back to treating the string as raw text
+                # rather than crashing on the coincidence.
+                pass
         return from_text(source)
 
     raise TypeError(f"Unsupported input source type: {type(source)!r}")

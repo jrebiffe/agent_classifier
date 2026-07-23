@@ -42,6 +42,15 @@ repos:
         entry: ruff format
         language: system
         types: [python]
+      # mdformat is markdown's ruff-format equivalent: the single rewriter.
+      # --number keeps real ordinal numbers (1. 2. 3.) instead of flattening
+      # to "1." everywhere — prompts/*.md are read as raw text by the model,
+      # not rendered, so real sequence numbers matter there.
+      - id: mdformat
+        name: mdformat
+        entry: mdformat --number
+        language: system
+        types: [markdown]
       # --- checkers ---
       # black verifies ruff format's output stays black-compatible (no rewrite).
       - id: black
@@ -77,3 +86,15 @@ repos:
         entry: codespell
         language: system
         pass_filenames: false
+      # structure (headings, fences, duplicate content) — config in .pymarkdown.json
+      - id: pymarkdown
+        name: pymarkdown (structure)
+        entry: pymarkdown -c .pymarkdown.json scan
+        language: system
+        types: [markdown]
+      # prose quality (weasel words, clichés, jargon) — config in .proselintrc.json
+      - id: proselint
+        name: proselint (prose quality)
+        entry: proselint check
+        language: system
+        types: [markdown]
