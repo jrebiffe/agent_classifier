@@ -35,6 +35,7 @@ dev = [
     "mdformat-gfm>=0.3",
     "pymarkdownlnt>=0.9",
     "proselint>=0.13",
+    "pydocstyle>=6.3",
     "deptry>=0.20",
     "pip-audit>=2.7",
     "detect-secrets>=1.5",
@@ -159,6 +160,13 @@ ignore_missing_imports = true
 # ---------------------------------------------------------------------------
 [tool.bandit]
 exclude_dirs = ["tests", ".venv", "build", "dist"]
+
+# ---------------------------------------------------------------------------
+# pydocstyle — docstring conventions, kept alongside ruff's D rules. Invoked
+# scoped to src/ (like bandit/mypy/interrogate), so no path excludes needed.
+# ---------------------------------------------------------------------------
+[tool.pydocstyle]
+convention = "pep257"
 
 # ---------------------------------------------------------------------------
 # interrogate — docstring coverage for the package.

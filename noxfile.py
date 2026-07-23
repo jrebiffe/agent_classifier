@@ -73,9 +73,10 @@ def deps(session: nox.Session) -> None:
 
 @nox.session(python=PYTHON)
 def docs(session: nox.Session) -> None:
-    """Docstring coverage with interrogate."""
+    """Docstring coverage (interrogate) and conventions (pydocstyle)."""
     session.install("-e", ".[dev]")
     session.run("interrogate", "-c", "pyproject.toml", "src")
+    session.run("pydocstyle", "src")
 
 
 @nox.session(python=PYTHON)
@@ -83,7 +84,7 @@ def markdown(session: nox.Session) -> None:
     """Check Markdown formatting, structure, and prose quality."""
     session.install("-e", ".[dev]")
     md_files = _markdown_files()
-    session.run("mdformat", "--number", "--check", *md_files)
+    session.run("mdformat", "--number", "--wrap", "88", "--check", *md_files)
     session.run("pymarkdown", "-c", ".pymarkdown.json", "scan", *md_files)
     session.run("proselint", "check", *md_files)
 

@@ -45,10 +45,11 @@ repos:
       # mdformat is markdown's ruff-format equivalent: the single rewriter.
       # --number keeps real ordinal numbers (1. 2. 3.) instead of flattening
       # to "1." everywhere — prompts/*.md are read as raw text by the model,
-      # not rendered, so real sequence numbers matter there.
+      # not rendered, so real sequence numbers matter there. --wrap 88 matches
+      # pymarkdown's MD013 line_length below.
       - id: mdformat
         name: mdformat
-        entry: mdformat --number
+        entry: mdformat --number --wrap 88
         language: system
         types: [markdown]
       # --- checkers ---
@@ -78,6 +79,14 @@ repos:
       - id: interrogate
         name: interrogate (docstring coverage)
         entry: interrogate -c pyproject.toml src
+        language: system
+        types: [python]
+        pass_filenames: false
+      # docstring conventions (PEP 257 content/format rules), kept alongside
+      # ruff's D rules — same overlap pattern as flake8/black/bandit above.
+      - id: pydocstyle
+        name: pydocstyle
+        entry: pydocstyle src
         language: system
         types: [python]
         pass_filenames: false
