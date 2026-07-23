@@ -11,16 +11,17 @@ skills actually do, and emits the schema via DeepAgents' `response_format`.
 
 ## How it works
 
-```text
-input (dir / text / json)                      structured output
-        │                                              ▲
-        ▼                                              │
-  inputs.load_input ──► {path: FileData}         AgentClassification
-        │                     │                        │
-        │              seeded as `files`        result["structured_response"]
-        ▼                     ▼                        │
-        └──────────► create_deep_agent(...) ──► agent.invoke(...)
-                          model + enrichment tools + response_format
+```mermaid
+flowchart LR
+    Source(["source<br/>dir / text / json"]) --> Load["load_input()"] --> Files[["files"]]
+
+    Model(["model"]) --> Build
+    Tools(["enrichment tools"]) --> Build
+    Schema(["response_format =<br/>AgentClassification"]) --> Build["create_deep_agent(...)"] --> Agent["agent"]
+
+    Files --> Invoke["agent.invoke(...)"]
+    Agent --> Invoke
+    Invoke --> Result["result['structured_response']"] --> Output(["AgentClassification"])
 ```
 
 1. **`inputs.py`** normalises whatever you have — a directory of agent files, a single
@@ -144,8 +145,8 @@ above are exempted from the length check since wrapping either would break them 
 can't be rewrapped, and a wrapped table loses its alignment — the table above is
 deliberately wrapped in `<!--- pyml disable/enable md013 --->` markers rather than
 silently excluded project-wide). `proselint` flags weasel words, clichés, and redundancy
-(its typography checks are off; they mostly fire on code spans and fences in a technical
-README).
+(its typography and lexical-illusions checks are off; both mostly fire on code spans,
+fences, and the Mermaid diagram above rather than on actual prose).
 
 ## Extending to specialist sub-agents
 
