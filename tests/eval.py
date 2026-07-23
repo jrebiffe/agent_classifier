@@ -13,14 +13,10 @@ wording will vary between model runs.
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 
-# Allow running as a plain script without installing the package.
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
-from agent_classifier import classify  # noqa: E402
-from agent_classifier.taxonomy import Severity  # noqa: E402
+from agent_classifier import classify
+from agent_classifier.taxonomy import Severity
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -32,14 +28,18 @@ CASES = [
         "support-refund-agent",
         FIXTURES / "sample_agent",
         [
-            ("domain is customer_support or finance",
-             lambda r: r.domain in ("customer_support", "finance")),
-            ("overall risk is high or critical",
-             lambda r: r.overall_risk in _STRONG),
-            ("flags a financial_transaction risk",
-             lambda r: any(risk.category == "financial_transaction" for risk in r.risks)),
-            ("finds at least one goal",
-             lambda r: len(r.goals) >= 1),
+            (
+                "domain is customer_support or finance",
+                lambda r: r.domain in ("customer_support", "finance"),
+            ),
+            ("overall risk is high or critical", lambda r: r.overall_risk in _STRONG),
+            (
+                "flags a financial_transaction risk",
+                lambda r: any(
+                    risk.category == "financial_transaction" for risk in r.risks
+                ),
+            ),
+            ("finds at least one goal", lambda r: len(r.goals) >= 1),
         ],
     ),
 ]
@@ -47,16 +47,20 @@ CASES = [
 
 def main() -> int:
     if not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("AGENT_CLASSIFIER_MODEL")):
-        print("Set ANTHROPIC_API_KEY (and optionally AGENT_CLASSIFIER_MODEL) to run the eval.")
+        print(
+            "Set ANTHROPIC_API_KEY (and optionally AGENT_CLASSIFIER_MODEL) to run the eval."
+        )
         return 1
 
     total = passed = 0
     for name, source, checks in CASES:
         print(f"\n=== {name} ===")
         result = classify(source)
-        print(f"  domain={result.domain}  category={result.category}  "
-              f"autonomy={result.autonomy_level}  overall_risk={result.overall_risk}  "
-              f"confidence={result.confidence}")
+        print(
+            f"  domain={result.domain}  category={result.category}  "
+            f"autonomy={result.autonomy_level}  overall_risk={result.overall_risk}  "
+            f"confidence={result.confidence}"
+        )
         print(f"  risks: {[r.category for r in result.risks]}")
         for label, check in checks:
             total += 1

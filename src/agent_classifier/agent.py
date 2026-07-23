@@ -13,11 +13,10 @@ to ``create_deep_agent`` — the input/output contract below stays the same.
 from __future__ import annotations
 
 import os
-from typing import Any
-
-from langchain_core.language_models import BaseChatModel
+from typing import Any, cast
 
 from deepagents import create_deep_agent
+from langchain_core.language_models import BaseChatModel
 
 from .inputs import load_input
 from .prompts import SYSTEM_PROMPT, USER_INSTRUCTION
@@ -37,7 +36,7 @@ def default_model(model_id: str | None = None) -> BaseChatModel:
 
     model_id = model_id or os.getenv("AGENT_CLASSIFIER_MODEL", DEFAULT_MODEL)
     temperature = float(os.getenv("AGENT_CLASSIFIER_TEMPERATURE", "0"))
-    return init_chat_model(model_id, temperature=temperature)
+    return cast(BaseChatModel, init_chat_model(model_id, temperature=temperature))
 
 
 def _resolve_model(model: str | BaseChatModel | None) -> BaseChatModel:
@@ -53,7 +52,7 @@ def build_agent(
     *,
     use_enrichment: bool = True,
     extra_tools: list[Any] | None = None,
-):
+) -> Any:
     """Construct (compile) the Classifier deep agent.
 
     Args:
@@ -99,4 +98,4 @@ def classify(
         {"messages": [{"role": "user", "content": USER_INSTRUCTION}], "files": files},
         config={"recursion_limit": recursion_limit},
     )
-    return result["structured_response"]
+    return cast(AgentClassification, result["structured_response"])

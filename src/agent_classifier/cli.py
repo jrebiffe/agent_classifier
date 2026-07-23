@@ -16,6 +16,7 @@ from pathlib import Path
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line argument parser."""
     parser = argparse.ArgumentParser(
         prog="agent-classifier",
         description="Analyse an AI agent's artifacts and emit a structured classification.",
@@ -47,6 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the classifier from the command line and print/write JSON."""
     # Imported lazily so `--help` works without the heavy agent stack.
     from .agent import classify
 

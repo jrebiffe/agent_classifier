@@ -53,16 +53,16 @@ class Category(StrEnum):
 class RiskCategory(StrEnum):
     """Families of risk an agent can carry, based on what it can do and read."""
 
-    DESTRUCTIVE_ACTION = "destructive_action"          # deletes/overwrites irreversibly
-    DATA_EXFILTRATION = "data_exfiltration"            # can move data outward
-    SENSITIVE_DATA_ACCESS = "sensitive_data_access"    # reads confidential data
-    PROMPT_INJECTION = "prompt_injection"              # ingests untrusted content
-    EXCESSIVE_PRIVILEGE = "excessive_privilege"        # broader access than needed
-    UNBOUNDED_AUTONOMY = "unbounded_autonomy"          # acts without human review
-    FINANCIAL_TRANSACTION = "financial_transaction"    # moves money / makes purchases
-    COMPLIANCE_PII = "compliance_pii"                  # regulated / personal data
-    SUPPLY_CHAIN = "supply_chain"                      # unvetted 3rd-party servers/skills
-    MISINFORMATION = "misinformation"                  # can assert unverified claims
+    DESTRUCTIVE_ACTION = "destructive_action"  # deletes/overwrites irreversibly
+    DATA_EXFILTRATION = "data_exfiltration"  # can move data outward
+    SENSITIVE_DATA_ACCESS = "sensitive_data_access"  # reads confidential data
+    PROMPT_INJECTION = "prompt_injection"  # ingests untrusted content
+    EXCESSIVE_PRIVILEGE = "excessive_privilege"  # broader access than needed
+    UNBOUNDED_AUTONOMY = "unbounded_autonomy"  # acts without human review
+    FINANCIAL_TRANSACTION = "financial_transaction"  # moves money / makes purchases
+    COMPLIANCE_PII = "compliance_pii"  # regulated / personal data
+    SUPPLY_CHAIN = "supply_chain"  # unvetted 3rd-party servers/skills
+    MISINFORMATION = "misinformation"  # can assert unverified claims
     OTHER = "other"
 
 
@@ -78,10 +78,10 @@ class Severity(StrEnum):
 class AutonomyLevel(StrEnum):
     """How much the agent can do on its own, from advisory to fully autonomous."""
 
-    READ_ONLY = "read_only"                    # only observes / reports
-    SUGGESTS = "suggests"                       # proposes, a human executes
-    ACTS_WITH_APPROVAL = "acts_with_approval"   # acts behind human-in-the-loop
-    FULLY_AUTONOMOUS = "fully_autonomous"       # acts without approval
+    READ_ONLY = "read_only"  # only observes / reports
+    SUGGESTS = "suggests"  # proposes, a human executes
+    ACTS_WITH_APPROVAL = "acts_with_approval"  # acts behind human-in-the-loop
+    FULLY_AUTONOMOUS = "fully_autonomous"  # acts without approval
 
 
 class DataSensitivity(StrEnum):

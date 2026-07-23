@@ -7,7 +7,7 @@ API request is made until ``invoke`` — so this validates the whole assembly
 
 from __future__ import annotations
 
-from agent_classifier.agent import build_agent
+from agent_classifier.agent import build_agent, default_model
 
 
 def test_build_agent_with_enrichment(monkeypatch):
@@ -26,4 +26,19 @@ def test_build_agent_respects_model_env(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
     monkeypatch.setenv("AGENT_CLASSIFIER_MODEL", "anthropic:claude-sonnet-4-6")
     agent = build_agent()
+    assert hasattr(agent, "invoke")
+
+
+def test_build_agent_accepts_model_id_string(monkeypatch):
+    # exercises the str branch of _resolve_model
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
+    agent = build_agent(model="anthropic:claude-sonnet-4-6")
+    assert hasattr(agent, "invoke")
+
+
+def test_build_agent_accepts_model_instance_and_extra_tools(monkeypatch):
+    # exercises the BaseChatModel passthrough branch and extra_tools
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
+    model = default_model()
+    agent = build_agent(model=model, use_enrichment=False, extra_tools=[])
     assert hasattr(agent, "invoke")

@@ -9,16 +9,16 @@ from agent_classifier.schema import AgentClassification, Goal, Risk
 
 
 def _minimal_classification(**overrides):
-    data = dict(
-        title="Test Agent",
-        summary="An agent used for testing.",
-        domain="software_engineering",
-        category="coding_assistant",
-        autonomy_level="suggests",
-        data_sensitivity="low",
-        overall_risk="low",
-        confidence=0.8,
-    )
+    data = {
+        "title": "Test Agent",
+        "summary": "An agent used for testing.",
+        "domain": "software_engineering",
+        "category": "coding_assistant",
+        "autonomy_level": "suggests",
+        "data_sensitivity": "low",
+        "overall_risk": "low",
+        "confidence": 0.8,
+    }
     data.update(overrides)
     return AgentClassification(**data)
 

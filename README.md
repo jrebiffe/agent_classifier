@@ -95,6 +95,32 @@ The offline suite runs without credentials — `test_agent_build.py` compiles th
 full deep agent (no network call happens until `invoke`). `tests/eval.py` makes
 real model calls and checks soft expectations against `tests/fixtures/sample_agent`.
 
+## Code quality
+
+All quality tools are wired through **pre-commit** and mirrored in CI
+(`.github/workflows/quality.yml`) and **nox**. Set up the git hook once:
+
+```bash
+pip install -e ".[dev]"
+pre-commit install          # run the checks on every commit
+pre-commit run --all-files  # or run them on demand
+nox                         # or run the full suite in isolated envs
+```
+
+The stack, and who owns what:
+
+| Concern | Tools |
+|---|---|
+| Format | **black** (the one formatter) + **isort** (`profile = black`) |
+| Lint | **ruff** and **flake8** (both lint; ruff's formatter and `I` rules are off so they don't fight black/isort) |
+| Types | **mypy** (scoped to `src`) |
+| Security | **bandit** + ruff's `S` rules (code) · **pip-audit** (dependency CVEs) · **detect-secrets** (secret scanning) |
+| Deps & docs | **deptry** (unused/missing deps) · **interrogate** (100% docstring coverage) · **codespell** (typos) |
+| Tests | **pytest** + **pytest-cov** (coverage gate: 80%) |
+
+Configuration for every tool lives in `pyproject.toml`; the pre-commit hooks run
+the versions pinned in the `[dev]` extra so local, hook, and CI runs match.
+
 ## Extending to specialist sub-agents
 
 For deeper, auditable analysis you can promote the single agent to an

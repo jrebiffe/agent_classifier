@@ -15,12 +15,36 @@ from typing import Any
 # Suffixes we treat as readable agent artifacts. "" covers extension-less files
 # such as ``Dockerfile`` or ``LICENSE``.
 _TEXT_SUFFIXES = {
-    ".md", ".markdown", ".txt", ".json", ".yaml", ".yml", ".toml",
-    ".py", ".js", ".ts", ".sh", ".env", ".cfg", ".ini", ".xml", ".csv", "",
+    ".md",
+    ".markdown",
+    ".txt",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".py",
+    ".js",
+    ".ts",
+    ".sh",
+    ".env",
+    ".cfg",
+    ".ini",
+    ".xml",
+    ".csv",
+    "",
 }
 _SKIP_DIRS = {
-    ".git", "node_modules", ".venv", "venv", "__pycache__", ".idea",
-    ".vscode", "dist", "build", ".mypy_cache", ".pytest_cache",
+    ".git",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".idea",
+    ".vscode",
+    "dist",
+    "build",
+    ".mypy_cache",
+    ".pytest_cache",
 }
 _MAX_BYTES = 200_000
 
@@ -34,7 +58,7 @@ def _make_file_data(content: str) -> dict[str, Any]:
     try:
         from deepagents.backends.utils import create_file_data
 
-        return create_file_data(content)
+        return dict(create_file_data(content))
     except Exception:  # pragma: no cover - fallback if the helper moves
         return {"content": content, "encoding": "utf-8"}
 
