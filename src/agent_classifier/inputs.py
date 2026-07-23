@@ -7,6 +7,7 @@ DeepAgents virtual filesystem expects: ``{path: FileData}``, passed as the
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -45,6 +46,10 @@ _SKIP_DIRS = {
     ".pytest_cache",
 }
 _MAX_BYTES = 200_000
+# Safety cap on total directory entries walked, so a mistaken or coincidental
+# path like "/" can't trigger a slow, unbounded scan of the whole filesystem
+# (or read sensitive files far outside the intended agent directory).
+_MAX_ENTRIES = 5_000
 
 # Keys we know how to render from a structured (JSON/dict) description.
 _INSTRUCTION_KEYS = ("instructions", "system_prompt", "systemPrompt", "prompt")
@@ -66,6 +71,37 @@ def from_text(blob: str, name: str = "/agent/agent.md") -> dict[str, Any]:
     return {name: _make_file_data(blob)}
 
 
+def _should_descend(child: Path, name: str, root_dev: int | None) -> bool:
+    """Whether a subdirectory should be walked into.
+
+    Excludes named tooling directories, and (like ``find -xdev``) anything on
+    a different device than the root — real usage is /proc, /sys, and other
+    mounted filesystems, whose pseudo-files can be unreadable, unbounded in
+    size, or block forever on read.
+    """
+    if name in _SKIP_DIRS:
+        return False
+    if root_dev is None:
+        return True
+    try:
+        return (child / name).stat().st_dev == root_dev
+    except OSError:
+        return False
+
+
+def _read_as_file_data(p: Path) -> dict[str, Any] | None:
+    """Read one artifact, or ``None`` if it's too big, unreadable, or binary."""
+    if p.suffix.lower() not in _TEXT_SUFFIXES:
+        return None
+    try:
+        if p.stat().st_size > _MAX_BYTES:
+            return None
+        content = p.read_text(encoding="utf-8", errors="replace")
+    except (OSError, UnicodeError):
+        return None
+    return _make_file_data(content)
+
+
 def from_directory(path: str | Path) -> dict[str, Any]:
     """Read a directory of agent artifacts into the virtual filesystem.
 
@@ -76,22 +112,38 @@ def from_directory(path: str | Path) -> dict[str, Any]:
     if not root.is_dir():
         raise NotADirectoryError(f"{root} is not a directory")
 
+    try:
+        root_dev = root.stat().st_dev
+    except OSError:
+        root_dev = None
+
     files: dict[str, Any] = {}
-    for p in sorted(root.rglob("*")):
-        if not p.is_file():
-            continue
-        if any(part in _SKIP_DIRS for part in p.relative_to(root).parts):
-            continue
-        if p.suffix.lower() not in _TEXT_SUFFIXES:
-            continue
-        try:
-            if p.stat().st_size > _MAX_BYTES:
-                continue
-            content = p.read_text(encoding="utf-8", errors="replace")
-        except (OSError, UnicodeError):
-            continue
-        rel = p.relative_to(root).as_posix()
-        files[f"/agent/{rel}"] = _make_file_data(content)
+    entries_seen = 0
+    # os.walk (unlike Path.rglob + .is_file()) tolerates permission-denied
+    # directories and unreadable entries — e.g. broken symlinks under /proc —
+    # by skipping them instead of raising.
+    for dirpath, dirnames, filenames in os.walk(root, onerror=lambda _err: None):
+        current_dir = Path(dirpath)
+        dirnames[:] = sorted(
+            d for d in dirnames if _should_descend(current_dir, d, root_dev)
+        )
+
+        for name in sorted(filenames):
+            p = current_dir / name
+            file_data = _read_as_file_data(p)
+            if file_data is not None:
+                rel = p.relative_to(root).as_posix()
+                files[f"/agent/{rel}"] = file_data
+
+        # Counts directories actually visited (1 for this one) plus files
+        # actually examined — not the not-yet-visited child directory names
+        # in `dirnames`, which would over-count a directory merely for
+        # having many siblings before any of them is ever walked. Checked
+        # after fully handling this directory, so one that alone exceeds the
+        # cap still gets read in full — the cap only stops further descent.
+        entries_seen += 1 + len(filenames)
+        if entries_seen > _MAX_ENTRIES:
+            break
 
     if not files:
         raise ValueError(f"No readable agent artifacts found under {root}")

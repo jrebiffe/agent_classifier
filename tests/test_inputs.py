@@ -1,9 +1,11 @@
 """Input adapters: directory, blob, and structured dict."""
 
+import os
 from pathlib import Path
 
 import pytest
 
+import agent_classifier.inputs as inputs_module
 from agent_classifier.inputs import (
     from_directory,
     from_json,
@@ -50,6 +52,74 @@ def test_from_directory_skips_tooling_dirs(tmp_path):
 def test_from_directory_rejects_non_directory():
     with pytest.raises(NotADirectoryError):
         from_directory(FIXTURE_DIR / "CLAUDE.md")
+
+
+def test_from_directory_tolerates_permission_denied_subdirectory(tmp_path, monkeypatch):
+    # A subdirectory os.walk can't list (e.g. chmod 000, or a permission wall
+    # under /proc when a mistaken path like "/" is passed) must be skipped,
+    # not crash the whole walk.
+    (tmp_path / "readable.md").write_text("hello", encoding="utf-8")
+    locked = tmp_path / "locked"
+    locked.mkdir()
+    (locked / "secret.md").write_text("secret", encoding="utf-8")
+
+    real_scandir = os.scandir
+
+    def flaky_scandir(path="."):
+        if Path(path) == locked:
+            raise PermissionError(13, "Permission denied", str(path))
+        return real_scandir(path)
+
+    monkeypatch.setattr(os, "scandir", flaky_scandir)
+
+    files = from_directory(tmp_path)
+    assert any(p.endswith("readable.md") for p in files)
+    assert not any("secret" in p for p in files)
+
+
+def test_from_directory_does_not_cross_filesystem_boundaries(tmp_path, monkeypatch):
+    # Mirrors `find -xdev`: a subdirectory on a different device (a mount
+    # point — in real usage /proc, /sys, or any other mounted filesystem)
+    # must not be descended into, regardless of _SKIP_DIRS.
+    (tmp_path / "readable.md").write_text("hello", encoding="utf-8")
+    other_mount = tmp_path / "other_mount"
+    other_mount.mkdir()
+    (other_mount / "elsewhere.md").write_text("should not be read", encoding="utf-8")
+
+    real_stat = Path.stat
+
+    class _FakeStat:
+        def __init__(self, real):
+            self._real = real
+            self.st_dev = real.st_dev + 1
+
+        def __getattr__(self, name):
+            return getattr(self._real, name)
+
+    def fake_stat(self, *args, **kwargs):
+        result = real_stat(self, *args, **kwargs)
+        return _FakeStat(result) if self == other_mount else result
+
+    monkeypatch.setattr(Path, "stat", fake_stat)
+
+    files = from_directory(tmp_path)
+    assert any(p.endswith("readable.md") for p in files)
+    assert not any("elsewhere" in p for p in files)
+
+
+def test_from_directory_stops_after_max_entries(tmp_path, monkeypatch):
+    # Bounds a mistaken or coincidental path like "/" to a fast, partial scan
+    # instead of an unbounded walk of the whole filesystem. The cap is
+    # checked between directories, so each subdirectory visited before the
+    # cap trips is still read in full — only further descent is stopped.
+    monkeypatch.setattr(inputs_module, "_MAX_ENTRIES", 3)
+    for i in range(10):
+        sub = tmp_path / f"dir{i}"
+        sub.mkdir()
+        (sub / "file.md").write_text(f"content {i}", encoding="utf-8")
+
+    files = from_directory(tmp_path)
+    assert 0 < len(files) < 10
 
 
 def test_from_json_renders_known_sections():
