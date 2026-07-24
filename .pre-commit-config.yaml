@@ -52,6 +52,11 @@ repos:
         entry: mdformat --number --wrap 88
         language: system
         types: [markdown]
+        # docs/ is generated-syntax Markdown (mkdocstrings `:::`, Material
+        # admonitions, autorefs cross-references). mdformat corrupts those —
+        # notably escaping `[x][ref]` cross-refs into broken literal text — so
+        # the docs are gated by `mkdocs build --strict` instead.
+        exclude: ^docs/
       # --- checkers ---
       # black verifies ruff format's output stays black-compatible (no rewrite).
       - id: black
@@ -101,6 +106,8 @@ repos:
         entry: pymarkdown -c .pymarkdown.json scan
         language: system
         types: [markdown]
+        # See mdformat above — docs/ structure is validated by mkdocs --strict.
+        exclude: ^docs/
       # prose quality (weasel words, clichés, jargon) — config in .proselintrc.json
       - id: proselint
         name: proselint (prose quality)

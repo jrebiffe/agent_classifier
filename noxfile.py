@@ -13,8 +13,9 @@ nox.options.sessions = [
     "typecheck",
     "security",
     "deps",
-    "docs",
+    "docstrings",
     "markdown",
+    "docs",
     "tests",
 ]
 nox.options.reuse_existing_virtualenvs = True
@@ -72,7 +73,7 @@ def deps(session: nox.Session) -> None:
 
 
 @nox.session(python=PYTHON)
-def docs(session: nox.Session) -> None:
+def docstrings(session: nox.Session) -> None:
     """Docstring coverage (interrogate) and conventions (pydocstyle)."""
     session.install("-e", ".[dev]")
     session.run("interrogate", "-c", "pyproject.toml", "src")
@@ -84,9 +85,20 @@ def markdown(session: nox.Session) -> None:
     """Check Markdown formatting, structure, and prose quality."""
     session.install("-e", ".[dev]")
     md_files = _markdown_files()
-    session.run("mdformat", "--number", "--wrap", "88", "--check", *md_files)
-    session.run("pymarkdown", "-c", ".pymarkdown.json", "scan", *md_files)
+    # docs/ uses mkdocstrings/Material syntax that mdformat and pymarkdown
+    # corrupt or misparse (see .pre-commit-config.yaml); it is gated by
+    # `nox -s docs` (mkdocs build --strict). proselint still lints its prose.
+    non_docs = [f for f in md_files if not f.startswith("docs/")]
+    session.run("mdformat", "--number", "--wrap", "88", "--check", *non_docs)
+    session.run("pymarkdown", "-c", ".pymarkdown.json", "scan", *non_docs)
     session.run("proselint", "check", *md_files)
+
+
+@nox.session(python=PYTHON)
+def docs(session: nox.Session) -> None:
+    """Build the documentation site with strict checks (the docs gate)."""
+    session.install("-e", ".[docs]")
+    session.run("mkdocs", "build", "--strict")
 
 
 @nox.session(python=PYTHON)

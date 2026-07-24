@@ -22,6 +22,10 @@ env/
 coverage.xml
 htmlcov/
 
+# Docs build output
+site/
+.cache/
+
 # Environment / secrets
 .env
 

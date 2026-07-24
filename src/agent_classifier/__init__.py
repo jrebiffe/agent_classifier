@@ -2,7 +2,8 @@
 
 Given the artifacts of an AI agent (instructions, MCP servers, skills, tools,
 settings), it identifies goals, domain, category, capabilities, autonomy, and
-risks, and returns them as a validated :class:`AgentClassification`.
+risks, and returns them as a validated
+[`AgentClassification`][agent_classifier.schema.AgentClassification].
 """
 
 from .agent import build_agent, classify
