@@ -85,12 +85,16 @@ def markdown(session: nox.Session) -> None:
     """Check Markdown formatting, structure, and prose quality."""
     session.install("-e", ".[dev]")
     md_files = _markdown_files()
-    # docs/ uses mkdocstrings/Material syntax that mdformat and pymarkdown
-    # corrupt or misparse (see .pre-commit-config.yaml); it is gated by
-    # `nox -s docs` (mkdocs build --strict). proselint still lints its prose.
-    non_docs = [f for f in md_files if not f.startswith("docs/")]
-    session.run("mdformat", "--number", "--wrap", "88", "--check", *non_docs)
-    session.run("pymarkdown", "-c", ".pymarkdown.json", "scan", *non_docs)
+    session.run(
+        "mdformat",
+        "--number",
+        "--wrap",
+        "88",
+        "--ignore-missing-references",
+        "--check",
+        *md_files,
+    )
+    session.run("pymarkdown", "-c", ".pymarkdown.json", "scan", *md_files)
     session.run("proselint", "check", *md_files)
 
 

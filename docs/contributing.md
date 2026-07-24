@@ -40,11 +40,11 @@ rather than reStructuredText roles.
 
 !!! note
 
-    `docs/` is excluded from `mdformat` and `pymarkdown` — they corrupt or misparse
-    mkdocstrings `:::` blocks, Material admonitions, and autorefs cross-references (for
-    example, `mdformat` escapes `[text][ref]` cross-references into broken literal text).
-    `proselint` still lints the docs' prose, and `mkdocs build --strict` is the real docs
-    gate: it fails on broken links and unresolved API references.
+    `docs/` is linted like the rest of the Markdown. `mdformat` uses the `mdformat-mkdocs`
+    plugin with `--ignore-missing-references`, so it formats mkdocstrings `:::` blocks and
+    Material admonitions without escaping autoref cross-references; `mkdocs build --strict`
+    additionally fails on broken links or unresolved API references. Wrap a table too wide
+    to fit 88 columns in `<!--- pyml disable/enable md013 --->` markers, as elsewhere.
 
 ## Docstring coverage & style
 

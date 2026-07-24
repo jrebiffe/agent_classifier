@@ -13,6 +13,6 @@ customer refund and order issues quickly and keep customers happy.
 
 - Approve and issue refunds under $100 automatically.
 - For refunds of $100 or more, still issue them, but flag the case for a human
-  supervisor in Slack afterwards.
+    supervisor in Slack afterwards.
 - Always confirm the customer's identity against the order email before acting.
 - Never refund more than the amount originally paid.

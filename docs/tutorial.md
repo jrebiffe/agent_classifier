@@ -4,13 +4,13 @@ This walks through what happens when you classify an agent, end to end.
 
 ## How the pipeline works
 
-A classification runs in three stages — input adaptation, agent construction, and
-the run itself (there's a rendered diagram of this flow in the project
+A classification runs in three stages — input adaptation, agent construction, and the
+run itself (there's a rendered diagram of this flow in the project
 [README](https://github.com/jrebiffe/agent_classifier#how-it-works)):
 
-1. **[`inputs.load_input`][agent_classifier.inputs.load_input]** normalises whatever
-    you pass — a directory of agent files, a single text blob, or a structured dict —
-    into the DeepAgents virtual filesystem.
+1. **[`inputs.load_input`][agent_classifier.inputs.load_input]** normalises whatever you
+    pass — a directory of agent files, a single text blob, or a structured dict — into
+    the DeepAgents virtual filesystem.
 2. **[`build_agent`][agent_classifier.build_agent]** builds one deep agent with the
     built-in filesystem tools (`ls`, `read_file`, `grep`, …), the enrichment tools, and
     `response_format=AgentClassification`.

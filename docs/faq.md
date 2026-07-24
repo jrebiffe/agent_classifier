@@ -34,10 +34,10 @@ Yes. The project requires 3.13+ and CI runs on both 3.13 and 3.14.
 ## How reliable is the structured output?
 
 The schema is enforced via the model's structured-output mode (`response_format`), so
-you always get a valid [`AgentClassification`][agent_classifier.AgentClassification]
-or an error — never malformed JSON. Every goal and risk carries an `evidence` field to
-keep the content grounded, and `missing_info` captures what the input didn't reveal
-instead of inventing it. Run at temperature `0` (the default) for stability.
+you always get a valid [`AgentClassification`][agent_classifier.AgentClassification] or
+an error — never malformed JSON. Every goal and risk carries an `evidence` field to keep
+the content grounded, and `missing_info` captures what the input didn't reveal instead
+of inventing it. Run at temperature `0` (the default) for stability.
 
 ## How do I add a new category or risk type?
 
