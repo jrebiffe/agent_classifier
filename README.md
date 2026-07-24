@@ -47,9 +47,10 @@ cp .env.example .env        # then fill in your ANTHROPIC_API_KEY
 Library:
 
 ```python
-from agent_classifier import classify
+from agent_classifier import build_agent, classify
 
-result = classify("./path/to/agent")     # dir, file path, text blob, or dict
+agent = build_agent()
+result = classify("./path/to/agent", agent=agent)  # dir, file path, text blob, or dict
 print(result.overall_risk, result.domain)
 print(result.model_dump_json(indent=2))
 ```

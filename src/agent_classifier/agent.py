@@ -15,6 +15,7 @@ from typing import Any, cast
 
 from deepagents import create_deep_agent
 from langchain_core.language_models import BaseChatModel
+from langchain_core.runnables import Runnable
 
 from .inputs import load_input
 from .prompts import SYSTEM_PROMPT, USER_INSTRUCTION
@@ -22,6 +23,12 @@ from .schema import AgentClassification
 from .tools import ENRICHMENT_TOOLS
 
 DEFAULT_MODEL = "anthropic:claude-sonnet-4-6"
+
+# create_deep_agent returns a CompiledStateGraph parameterised over internal
+# langchain-agents-middleware state types; Runnable is its stable, public
+# supertype (CompiledStateGraph -> Pregel -> Runnable) and is what callers
+# actually use: agent.invoke(state_dict) -> dict.
+type CompiledAgent = Runnable[dict[str, Any], dict[str, Any]]
 
 
 def default_model(model_id: str | None = None) -> BaseChatModel:
@@ -50,7 +57,7 @@ def build_agent(
     *,
     use_enrichment: bool = True,
     extra_tools: list[Any] | None = None,
-) -> Any:
+) -> CompiledAgent:
     """Construct (compile) the Classifier deep agent.
 
     Args:
@@ -58,40 +65,46 @@ def build_agent(
             the environment/default model.
         use_enrichment: include the MCP/skill lookup tools.
         extra_tools: additional tools to expose to the agent.
+
+    Returns:
+        The compiled agent. Pass it to
+        [`classify`][agent_classifier.classify] as ``agent=`` — build once,
+        reuse across as many calls as you like.
     """
     tools: list[Any] = list(ENRICHMENT_TOOLS) if use_enrichment else []
     if extra_tools:
         tools.extend(extra_tools)
 
-    return create_deep_agent(
-        model=_resolve_model(model),
-        tools=tools,
-        system_prompt=SYSTEM_PROMPT,
-        response_format=AgentClassification,
+    # create_deep_agent's real return type is CompiledStateGraph, parameterised
+    # over internal agent-state TypedDicts rather than dict[str, Any] — it
+    # satisfies Runnable structurally (confirmed via its MRO) but not
+    # generic-invariantly, hence the cast to our public CompiledAgent alias.
+    return cast(
+        CompiledAgent,
+        create_deep_agent(
+            model=_resolve_model(model),
+            tools=tools,
+            system_prompt=SYSTEM_PROMPT,
+            response_format=AgentClassification,
+        ),
     )
 
 
 def classify(
     source: Any,
     *,
-    agent: Any | None = None,
-    model: str | BaseChatModel | None = None,
-    use_enrichment: bool = True,
+    agent: CompiledAgent,
     recursion_limit: int = 50,
 ) -> AgentClassification:
-    """Classify an agent from its artifacts.
+    """Classify an agent from its artifacts by running a pre-built agent.
 
     Args:
         source: a directory path, a file path, a raw text blob, or a structured
             dict describing the agent (see
             [`load_input`][agent_classifier.inputs.load_input]).
-        agent: a pre-built agent from
-            [`build_agent`][agent_classifier.build_agent], to reuse across
-            multiple calls instead of recompiling one each time. Built on
-            demand from ``model``/``use_enrichment`` when omitted.
-        model: optional model override. Ignored if ``agent`` is given.
-        use_enrichment: enable the MCP/skill lookup tools. Ignored if
-            ``agent`` is given.
+        agent: a compiled agent from
+            [`build_agent`][agent_classifier.build_agent]. Build it once and
+            pass the same instance to multiple calls to reuse it.
         recursion_limit: LangGraph recursion budget for the agent loop.
 
     Returns:
@@ -99,8 +112,6 @@ def classify(
         [`AgentClassification`][agent_classifier.schema.AgentClassification].
     """
     files = load_input(source)
-    if agent is None:
-        agent = build_agent(model=model, use_enrichment=use_enrichment)
     result = agent.invoke(
         {"messages": [{"role": "user", "content": USER_INSTRUCTION}], "files": files},
         config={"recursion_limit": recursion_limit},

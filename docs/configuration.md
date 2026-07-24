@@ -17,13 +17,14 @@ environment variables:
 Using OpenAI or a local provider also needs its own package (e.g. `langchain-openai`)
 and credentials.
 
-You can also pass a model per call — an id string or a pre-built `BaseChatModel` — which
-overrides the environment:
+You can also override the model when you build the agent — an id string or a pre-built
+`BaseChatModel` — which overrides the environment:
 
 ```python
-from agent_classifier import classify
+from agent_classifier import build_agent, classify
 
-classify(source, model="anthropic:claude-opus-4-8")
+agent = build_agent(model="anthropic:claude-opus-4-8")
+classify(source, agent=agent)
 ```
 
 See [`default_model`][agent_classifier.agent.default_model] and
@@ -53,4 +54,4 @@ MCP servers (`_MCP_KB`). To go further you can:
 - **Add your own tools** — pass `extra_tools=[...]` to
     [`build_agent`][agent_classifier.build_agent].
 
-Disable enrichment entirely with `classify(..., use_enrichment=False)`.
+Disable enrichment entirely with `build_agent(use_enrichment=False)`.

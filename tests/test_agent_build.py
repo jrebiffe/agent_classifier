@@ -1,9 +1,9 @@
-"""Offline tests for agent construction and the classify() build/reuse split.
+"""Offline tests for agent construction and classify()'s reuse contract.
 
 ``init_chat_model`` and ``create_deep_agent`` construct the graph lazily — no
 API request is made until ``invoke`` — so the ``build_agent`` tests validate
 the whole assembly (model, tools, system prompt, response_format) with a
-dummy key. The ``classify`` tests use a fake agent to stay offline too.
+dummy key. The ``classify`` test uses a fake agent to stay offline too.
 """
 
 from typing import Any
@@ -23,8 +23,8 @@ class _FakeAgent:
 
 
 def test_classify_reuses_a_prebuilt_agent():
-    # Passing `agent=` skips build_agent() entirely, so the same compiled
-    # agent can service multiple classify() calls without recompiling.
+    # `agent` is mandatory: build once, pass the same instance to multiple
+    # classify() calls to reuse it without recompiling.
     agent = _FakeAgent()
 
     first = classify("hello world", agent=agent)
@@ -32,28 +32,6 @@ def test_classify_reuses_a_prebuilt_agent():
 
     assert first == second == "stub-result"
     assert len(agent.calls) == 2
-
-
-def test_classify_builds_an_agent_when_none_given(monkeypatch):
-    # Without `agent=`, classify() must fall back to build_agent(model=...,
-    # use_enrichment=...) itself — the lazy, single-call path.
-    fake = _FakeAgent()
-    captured: dict[str, Any] = {}
-
-    def fake_build_agent(
-        model: Any = None, *, use_enrichment: bool = True, extra_tools: Any = None
-    ) -> _FakeAgent:
-        captured["model"] = model
-        captured["use_enrichment"] = use_enrichment
-        return fake
-
-    monkeypatch.setattr("agent_classifier.agent.build_agent", fake_build_agent)
-
-    result = classify("some agent text", use_enrichment=False)
-
-    assert result == "stub-result"
-    assert captured == {"model": None, "use_enrichment": False}
-    assert len(fake.calls) == 1
 
 
 def test_build_agent_with_enrichment(monkeypatch):

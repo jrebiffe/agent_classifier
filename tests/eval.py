@@ -13,7 +13,7 @@ wording will vary between model runs.
 import os
 from pathlib import Path
 
-from agent_classifier import classify
+from agent_classifier import build_agent, classify
 from agent_classifier.taxonomy import Severity
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -50,10 +50,11 @@ def main() -> int:
         )
         return 1
 
+    agent = build_agent()
     total = passed = 0
     for name, source, checks in CASES:
         print(f"\n=== {name} ===")
-        result = classify(source)
+        result = classify(source, agent=agent)
         print(
             f"  domain={result.domain}  category={result.category}  "
             f"autonomy={result.autonomy_level}  overall_risk={result.overall_risk}  "

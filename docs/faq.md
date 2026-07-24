@@ -48,26 +48,30 @@ Nothing else needs to change.
 
 It's a single agent run whose cost and latency depend on the model you choose and the
 size of the input. Use a smaller/faster model (e.g. Sonnet) for cheap runs and a larger
-one (e.g. Opus) when you want deeper analysis; disable enrichment
-(`use_enrichment=False`) to cut a few tool-calling round-trips.
+one (e.g. Opus) when you want deeper analysis; disable enrichment with
+`build_agent(use_enrichment=False)` to cut a few tool-calling round-trips.
 
 ## Can I inspect or drive the agent myself?
 
 Yes — [`build_agent`][agent_classifier.build_agent] returns the compiled
-DeepAgents/LangGraph agent. `classify()` is just a convenience wrapper around building
-one and reading `result["structured_response"]`.
+DeepAgents/LangGraph agent, typed as a `Runnable`. `classify()` itself just calls
+`agent.invoke(...)` and reads `result["structured_response"]`, so you can call
+`.invoke`, `.stream`, or any other `Runnable` method on the agent directly for more
+control.
 
-## Can I reuse the same agent across multiple classifications?
+## Why does classify() require a pre-built agent?
 
-Yes — build it once and pass it back in:
+[`build_agent`][agent_classifier.build_agent] and
+[`classify`][agent_classifier.classify] are deliberately separate: building resolves the
+model and compiles the DeepAgents graph, which you typically want to do once, while
+`classify()` just runs that agent against one source. Passing the same `agent` into
+multiple calls reuses it — no rebuilding, no re-resolving the model — which matters if
+you're classifying many agents in a loop:
 
 ```python
 from agent_classifier import build_agent, classify
 
-agent = build_agent(model="anthropic:claude-opus-4-8")
+agent = build_agent(model="anthropic:claude-opus-4-8", use_enrichment=False)
 first = classify("./agent-one", agent=agent)
 second = classify("./agent-two", agent=agent)
 ```
-
-`model` and `use_enrichment` are only used to build a new agent, so they're ignored when
-you pass `agent` explicitly.
