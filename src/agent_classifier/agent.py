@@ -74,6 +74,7 @@ def build_agent(
 def classify(
     source: Any,
     *,
+    agent: Any | None = None,
     model: str | BaseChatModel | None = None,
     use_enrichment: bool = True,
     recursion_limit: int = 50,
@@ -84,8 +85,13 @@ def classify(
         source: a directory path, a file path, a raw text blob, or a structured
             dict describing the agent (see
             [`load_input`][agent_classifier.inputs.load_input]).
-        model: optional model override.
-        use_enrichment: enable the MCP/skill lookup tools.
+        agent: a pre-built agent from
+            [`build_agent`][agent_classifier.build_agent], to reuse across
+            multiple calls instead of recompiling one each time. Built on
+            demand from ``model``/``use_enrichment`` when omitted.
+        model: optional model override. Ignored if ``agent`` is given.
+        use_enrichment: enable the MCP/skill lookup tools. Ignored if
+            ``agent`` is given.
         recursion_limit: LangGraph recursion budget for the agent loop.
 
     Returns:
@@ -93,7 +99,8 @@ def classify(
         [`AgentClassification`][agent_classifier.schema.AgentClassification].
     """
     files = load_input(source)
-    agent = build_agent(model=model, use_enrichment=use_enrichment)
+    if agent is None:
+        agent = build_agent(model=model, use_enrichment=use_enrichment)
     result = agent.invoke(
         {"messages": [{"role": "user", "content": USER_INSTRUCTION}], "files": files},
         config={"recursion_limit": recursion_limit},

@@ -37,8 +37,8 @@ the classification — the [schema](reference/schema.md) and the system prompt b
 their allowed values from them, so a change here flows through the whole pipeline
 without touching anything else.
 
-Keep enum *values* short, lowercase, and stable: they are the exact strings the model
-must emit.
+Values come from `auto()` (`NAME` -> `"name"`), so keep member *names* short and stable:
+renaming a member changes the exact string the model must emit.
 
 ## Enrichment tools
 

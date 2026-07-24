@@ -45,20 +45,22 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Run the classifier from the command line and print/write JSON."""
+def main(argv: list[str] | None = None) -> None:
+    """Run the classifier from the command line and print/write JSON.
+
+    Exits non-zero (via ``sys.exit``) on invalid input; an unhandled error
+    from the agent itself propagates and exits non-zero too.
+    """
     args = build_parser().parse_args(argv)
 
     if args.source == "-":
         source: object = sys.stdin.read()
         if not str(source).strip():
-            print("error: no input provided on stdin", file=sys.stderr)
-            return 2
+            sys.exit("error: no input provided on stdin")
     else:
         source = Path(args.source)
         if not source.exists():
-            print(f"error: no such path: {source}", file=sys.stderr)
-            return 2
+            sys.exit(f"error: no such path: {source}")
 
     # Imported here so `--help` and the error paths above never pay for loading
     # the heavy agent / deepagents stack.
@@ -76,8 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"wrote {args.output}")
     else:
         print(payload)
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

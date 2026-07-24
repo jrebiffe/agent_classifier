@@ -1,11 +1,59 @@
-"""Offline wiring test: the deep agent compiles without any network call.
+"""Offline tests for agent construction and the classify() build/reuse split.
 
 ``init_chat_model`` and ``create_deep_agent`` construct the graph lazily — no
-API request is made until ``invoke`` — so this validates the whole assembly
-(model, tools, system prompt, response_format) with a dummy key.
+API request is made until ``invoke`` — so the ``build_agent`` tests validate
+the whole assembly (model, tools, system prompt, response_format) with a
+dummy key. The ``classify`` tests use a fake agent to stay offline too.
 """
 
-from agent_classifier.agent import build_agent, default_model
+from typing import Any
+
+from agent_classifier.agent import build_agent, classify, default_model
+
+
+class _FakeAgent:
+    """Duck-typed stand-in for a compiled deep agent, for reuse tests."""
+
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
+    def invoke(self, payload: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+        self.calls.append(payload)
+        return {"structured_response": "stub-result"}
+
+
+def test_classify_reuses_a_prebuilt_agent():
+    # Passing `agent=` skips build_agent() entirely, so the same compiled
+    # agent can service multiple classify() calls without recompiling.
+    agent = _FakeAgent()
+
+    first = classify("hello world", agent=agent)
+    second = classify("a different agent", agent=agent)
+
+    assert first == second == "stub-result"
+    assert len(agent.calls) == 2
+
+
+def test_classify_builds_an_agent_when_none_given(monkeypatch):
+    # Without `agent=`, classify() must fall back to build_agent(model=...,
+    # use_enrichment=...) itself — the lazy, single-call path.
+    fake = _FakeAgent()
+    captured: dict[str, Any] = {}
+
+    def fake_build_agent(
+        model: Any = None, *, use_enrichment: bool = True, extra_tools: Any = None
+    ) -> _FakeAgent:
+        captured["model"] = model
+        captured["use_enrichment"] = use_enrichment
+        return fake
+
+    monkeypatch.setattr("agent_classifier.agent.build_agent", fake_build_agent)
+
+    result = classify("some agent text", use_enrichment=False)
+
+    assert result == "stub-result"
+    assert captured == {"model": None, "use_enrichment": False}
+    assert len(fake.calls) == 1
 
 
 def test_build_agent_with_enrichment(monkeypatch):

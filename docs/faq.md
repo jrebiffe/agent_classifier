@@ -55,4 +55,19 @@ one (e.g. Opus) when you want deeper analysis; disable enrichment
 
 Yes — [`build_agent`][agent_classifier.build_agent] returns the compiled
 DeepAgents/LangGraph agent. `classify()` is just a convenience wrapper around building
-it and reading `result["structured_response"]`.
+one and reading `result["structured_response"]`.
+
+## Can I reuse the same agent across multiple classifications?
+
+Yes — build it once and pass it back in:
+
+```python
+from agent_classifier import build_agent, classify
+
+agent = build_agent(model="anthropic:claude-opus-4-8")
+first = classify("./agent-one", agent=agent)
+second = classify("./agent-two", agent=agent)
+```
+
+`model` and `use_enrichment` are only used to build a new agent, so they're ignored when
+you pass `agent` explicitly.
