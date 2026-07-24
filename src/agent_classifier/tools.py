@@ -5,7 +5,8 @@ before it scores risk — the main quality lever over a naive one-shot classifie
 (e.g. discovering that a ``github`` server can push code and merge PRs).
 
 This is a starter, offline knowledge base. To go further, extend ``_MCP_KB`` or
-replace :func:`lookup_mcp_server` with a live registry / web-search lookup; the
+replace [`lookup_mcp_server`][agent_classifier.tools.lookup_mcp_server] with a
+live registry / web-search lookup; the
 agent wiring in ``agent.py`` does not care how these tools are implemented.
 """
 

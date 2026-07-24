@@ -25,12 +25,12 @@ flowchart LR
 ```
 
 1. **`inputs.py`** normalises whatever you have — a directory of agent files, a single
-   text blob, or a structured dict — into the DeepAgents virtual filesystem.
+    text blob, or a structured dict — into the DeepAgents virtual filesystem.
 2. **`agent.py`** builds one deep agent with the built-in filesystem tools (`ls`,
-   `read_file`, `grep`, …), the enrichment tools, and
-   `response_format=AgentClassification`.
+    `read_file`, `grep`, …), the enrichment tools, and
+    `response_format=AgentClassification`.
 3. The agent reads everything, optionally calls `lookup_mcp_server` / `lookup_skill` to
-   understand referenced components, then returns the schema.
+    understand referenced components, then returns the schema.
 
 ## Install
 
@@ -74,16 +74,16 @@ goal and risk carries an `evidence` field to keep the output grounded, and
 ## Configuring it
 
 - **Taxonomy** — the allowed `domain`, `category`, and risk categories live in
-  `taxonomy.py`. Edit those enums to reshape the classification; the schema and prompt
-  follow automatically.
+    `taxonomy.py`. Edit those enums to reshape the classification; the schema and prompt
+    follow automatically.
 - **Model** — set `AGENT_CLASSIFIER_MODEL` (any
-  [`init_chat_model`](https://python.langchain.com/docs/how_to/chat_models_universal_init/)
-  id, e.g. `anthropic:claude-opus-4-8` for depth, `openai:gpt-5.5`, or a local `ollama:`
-  model) and `AGENT_CLASSIFIER_TEMPERATURE`. Defaults to `anthropic:claude-sonnet-4-6`
-  at temperature 0.
+    [`init_chat_model`](https://python.langchain.com/docs/how_to/chat_models_universal_init/)
+    id, e.g. `anthropic:claude-opus-4-8` for depth, `openai:gpt-5.5`, or a local
+    `ollama:` model) and `AGENT_CLASSIFIER_TEMPERATURE`. Defaults to
+    `anthropic:claude-sonnet-4-6` at temperature 0.
 - **Enrichment** — `tools.py` holds a small offline knowledge base of common MCP
-  servers. Extend `_MCP_KB`, or swap `lookup_mcp_server` for a live registry /
-  web-search lookup; the agent wiring is indifferent to the implementation.
+    servers. Extend `_MCP_KB`, or swap `lookup_mcp_server` for a live registry /
+    web-search lookup; the agent wiring is indifferent to the implementation.
 
 ## Testing
 
@@ -136,17 +136,20 @@ for most tools lives in `pyproject.toml`; pymarkdown (`.pymarkdown.json`) and pr
 The pre-commit hooks run the versions pinned in the `[dev]` extra so local, hook, and CI
 runs match.
 
-Markdown files (this README, the prompt files, fixtures) are linted like code:
-`mdformat` wraps prose to 88 columns (`--wrap 88`, matching the Python line length) and
-rewrites formatting; `pymarkdown` checks structure at the same 88-column limit
-(headings, fenced code, duplicates) — `first-line-heading` is off because `prompts/*.md`
-are model input, not standalone documents, and fenced code / the one comparison table
-above are exempted from the length check since wrapping either would break them (code
-can't be rewrapped, and a wrapped table loses its alignment — the table above is
-deliberately wrapped in `<!--- pyml disable/enable md013 --->` markers rather than
-silently excluded project-wide). `proselint` flags weasel words, clichés, and redundancy
-(its typography and lexical-illusions checks are off; both mostly fire on code spans,
-fences, and the Mermaid diagram above rather than on actual prose).
+All Markdown — this README, the prompt files, fixtures, and the `docs/` site — is linted
+like code: `mdformat` wraps prose to 88 columns (`--wrap 88`, matching the Python line
+length) and rewrites formatting; `pymarkdown` checks structure at the same 88-column
+limit (headings, fenced code, duplicates); `proselint` flags weasel words, clichés, and
+redundancy. A few rules are off where a tool misreads legitimate syntax:
+`first-line-heading` (the prompt files and API pages aren't standalone documents),
+`code-block-style` (Material admonitions indent their body, which reads as indented
+code), and proselint's typography / lexical-illusions (they fire on code spans and
+diagrams). Tables too wide for 88 columns are wrapped in
+`<!--- pyml disable/enable md013 --->` markers rather than excluded project-wide. The
+`docs/` pages additionally use the `mdformat-mkdocs` plugin with
+`--ignore-missing-references`, so mkdocstrings `:::` blocks and `[text][ref]` autoref
+links survive formatting; `mkdocs build --strict` is a further gate that fails on broken
+links or unresolved API references.
 
 ## Extending to specialist sub-agents
 

@@ -49,7 +49,9 @@ repos:
       # pymarkdown's MD013 line_length below.
       - id: mdformat
         name: mdformat
-        entry: mdformat --number --wrap 88
+        # --ignore-missing-references (mdformat-mkdocs) keeps mkdocstrings
+        # autoref links `[text][id]` from being escaped into literal text.
+        entry: mdformat --number --wrap 88 --ignore-missing-references
         language: system
         types: [markdown]
       # --- checkers ---

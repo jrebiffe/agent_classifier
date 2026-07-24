@@ -17,6 +17,12 @@ dependencies = [
     "pydantic>=2.7,<3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jrebiffe/agent_classifier"
+Documentation = "https://jrebiffe.github.io/agent_classifier/"
+Repository = "https://github.com/jrebiffe/agent_classifier"
+Issues = "https://github.com/jrebiffe/agent_classifier/issues"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
@@ -33,6 +39,7 @@ dev = [
     "interrogate>=1.7",
     "mdformat>=0.7",
     "mdformat-gfm>=0.3",
+    "mdformat-mkdocs>=4",
     "pymarkdownlnt>=0.9",
     "proselint>=0.13",
     "pydocstyle>=6.3",
@@ -41,6 +48,14 @@ dev = [
     "detect-secrets>=1.5",
     "pre-commit>=3.8",
     "nox>=2024.4.15",
+]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+    "griffe-pydantic>=1.0",
+    "mkdocs-llmstxt>=0.1",
+    "black>=24.8",  # mkdocstrings uses it to format rendered signatures
 ]
 
 [project.scripts]
@@ -107,7 +122,7 @@ ignore = ["E501", "E203", "PLC0415"]
 [tool.ruff.lint.per-file-ignores]
 # tests use asserts, dummy creds, magic values, unused lambda args, and don't
 # need docstrings (interrogate excludes them too).
-"tests/**" = ["S101", "S105", "S106", "D", "ARG", "PLR2004", "PLR0913"]
+"tests/**" = ["S101", "S105", "S106", "D", "ARG", "PLR2004", "PLR0913", "PLR0917"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
@@ -184,7 +199,7 @@ exclude = ["tests", "noxfile.py"]
 # ---------------------------------------------------------------------------
 [tool.deptry]
 known_first_party = ["agent_classifier"]
-optional_dependencies_dev_groups = ["dev"]
+optional_dependencies_dev_groups = ["dev", "docs"]
 # noxfile.py is dev tooling, not part of the shipped package.
 extend_exclude = ["noxfile.py"]
 
@@ -196,4 +211,4 @@ DEP002 = ["langchain-anthropic"]
 # codespell — typo checker.
 # ---------------------------------------------------------------------------
 [tool.codespell]
-skip = "./.git,./.venv,./build,./dist,*.lock,./.secrets.baseline,./coverage.xml"
+skip = "./.git,./.venv,./.nox,./.cache,./site,./build,./dist,*.lock,./.secrets.baseline,./coverage.xml"

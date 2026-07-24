@@ -196,7 +196,7 @@ def from_json(obj: dict[str, Any]) -> dict[str, Any]:
 def load_input(source: str | Path | dict[str, Any]) -> dict[str, Any]:
     """Normalise any supported source into ``{path: FileData}``.
 
-    - ``dict``  -> :func:`from_json`
+    - ``dict``  -> [`from_json`][agent_classifier.inputs.from_json]
     - ``Path`` / path string that exists -> directory or single file
     - other ``str`` -> treated as a raw text blob
     """

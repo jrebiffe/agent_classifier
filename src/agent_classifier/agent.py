@@ -27,7 +27,7 @@ DEFAULT_MODEL = "anthropic:claude-sonnet-4-6"
 def default_model(model_id: str | None = None) -> BaseChatModel:
     """Build the classifier model via ``init_chat_model`` (provider-agnostic).
 
-    The id defaults to ``AGENT_CLASSIFIER_MODEL`` or :data:`DEFAULT_MODEL`;
+    The id defaults to ``AGENT_CLASSIFIER_MODEL`` or ``DEFAULT_MODEL``;
     temperature defaults to ``AGENT_CLASSIFIER_TEMPERATURE`` (0 for stability).
     """
     from langchain.chat_models import init_chat_model
@@ -82,13 +82,15 @@ def classify(
 
     Args:
         source: a directory path, a file path, a raw text blob, or a structured
-            dict describing the agent (see :func:`agent_classifier.inputs.load_input`).
+            dict describing the agent (see
+            [`load_input`][agent_classifier.inputs.load_input]).
         model: optional model override.
         use_enrichment: enable the MCP/skill lookup tools.
         recursion_limit: LangGraph recursion budget for the agent loop.
 
     Returns:
-        A validated :class:`AgentClassification`.
+        A validated
+        [`AgentClassification`][agent_classifier.schema.AgentClassification].
     """
     files = load_input(source)
     agent = build_agent(model=model, use_enrichment=use_enrichment)

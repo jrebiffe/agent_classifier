@@ -5,6 +5,7 @@
       "heading_line_length": 88,
       "code_blocks": false
     },
-    "md041": { "enabled": false }
+    "md041": { "enabled": false },
+    "md046": { "enabled": false }
   }
 }

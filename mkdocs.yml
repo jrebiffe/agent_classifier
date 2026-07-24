@@ -1,0 +1,101 @@
+site_name: agent-classifier
+site_description: >-
+  A DeepAgents-based Classifier that analyses AI agents and emits a structured
+  classification.
+site_url: https://jrebiffe.github.io/agent_classifier/
+repo_url: https://github.com/jrebiffe/agent_classifier
+repo_name: jrebiffe/agent_classifier
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+            filters: ["!^_"]
+            extensions:
+              - griffe_pydantic:
+                  schema: false
+  # llmstxt must run after mkdocstrings so it sees the rendered API pages.
+  - llmstxt:
+      markdown_description: >-
+        agent-classifier is a DeepAgents-based agent that analyses other AI
+        agents and emits a structured classification of them (goals, domain,
+        category, capabilities, autonomy level, and risks), validated against a
+        fixed schema.
+      full_output: llms-full.txt
+      sections:
+        Getting started:
+          - index.md
+          - getting-started.md
+        Guides:
+          - tutorial.md
+          - configuration.md
+          - faq.md
+        API reference:
+          - reference/*.md
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Tutorial: tutorial.md
+  - Configuration: configuration.md
+  - FAQ: faq.md
+  - API reference:
+      - Overview: reference/index.md
+      - Classifier (agent): reference/classify.md
+      - Output schema: reference/schema.md
+      - Taxonomy: reference/taxonomy.md
+      - Inputs: reference/inputs.md
+      - Enrichment tools: reference/tools.md
+      - CLI: reference/cli.md
+  - Contributing: contributing.md
