@@ -43,3 +43,11 @@ def test_expected_members_present():
     assert "workflow_automation" in {m.value for m in Category}
     assert {"low", "medium", "high", "critical"} <= {m.value for m in Severity}
     assert "fully_autonomous" in {m.value for m in AutonomyLevel}
+
+
+@pytest.mark.parametrize("enum_cls", ALL_ENUMS)
+def test_auto_values_match_lowercased_names(enum_cls):
+    # Values come from auto() (NAME -> "name"); this guards the derivation so
+    # a rename can't silently change the wire value without notice.
+    for member in enum_cls:
+        assert member.value == member.name.lower()

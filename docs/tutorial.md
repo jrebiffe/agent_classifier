@@ -26,9 +26,10 @@ customer-support refund assistant with a Stripe MCP server (refunds), a Postgres
 database, and Slack. Classify it:
 
 ```python
-from agent_classifier import classify
+from agent_classifier import build_agent, classify
 
-result = classify("tests/fixtures/sample_agent")
+agent = build_agent()
+result = classify("tests/fixtures/sample_agent", agent=agent)
 print(result.title, "—", result.summary)
 print("domain:", result.domain, "| category:", result.category)
 print("autonomy:", result.autonomy_level, "| data sensitivity:", result.data_sensitivity)
@@ -55,7 +56,7 @@ A few fields are worth understanding:
     When the agent under analysis references an MCP server the classifier isn't sure about,
     it calls the lookup tools to learn the server's *real* capabilities (e.g. that a
     `github` server can push code and merge PRs) before scoring risk. Disable this with
-    `classify(..., use_enrichment=False)` or the CLI's `--no-enrichment`.
+    `build_agent(use_enrichment=False)` or the CLI's `--no-enrichment`.
 
 Next: change the model, taxonomy, or enrichment in
 **[Configuration](configuration.md)**.

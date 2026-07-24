@@ -4,6 +4,8 @@ import io
 import json
 from pathlib import Path
 
+import pytest
+
 from agent_classifier import cli
 from agent_classifier.schema import AgentClassification
 
@@ -23,7 +25,10 @@ def _fake_result() -> AgentClassification:
     )
 
 
-def _stub_classify(monkeypatch):
+def _stub_agent(monkeypatch):
+    # main() always calls build_agent() now, so both it and classify() need
+    # stubbing to keep the CLI tests offline and credential-free.
+    monkeypatch.setattr("agent_classifier.agent.build_agent", lambda *a, **k: None)
     monkeypatch.setattr(
         "agent_classifier.agent.classify", lambda *a, **k: _fake_result()
     )
@@ -31,39 +36,38 @@ def _stub_classify(monkeypatch):
 
 def test_build_parser_defaults():
     args = cli.build_parser().parse_args([])
-    assert args.source == "-"
+    assert args.source == Path("-")
     assert args.model is None
     assert args.no_enrichment is False
     assert args.output is None
 
 
 def test_main_prints_json_for_a_path(monkeypatch, capsys):
-    _stub_classify(monkeypatch)
-    rc = cli.main([str(FIXTURE_DIR)])
-    assert rc == 0
+    _stub_agent(monkeypatch)
+    cli.main([str(FIXTURE_DIR)])
     assert json.loads(capsys.readouterr().out)["title"] == "X"
 
 
 def test_main_writes_output_file(monkeypatch, tmp_path):
-    _stub_classify(monkeypatch)
+    _stub_agent(monkeypatch)
     out = tmp_path / "result.json"
-    rc = cli.main([str(FIXTURE_DIR), "-o", str(out)])
-    assert rc == 0
+    cli.main([str(FIXTURE_DIR), "-o", str(out)])
     assert json.loads(out.read_text(encoding="utf-8"))["domain"] == "other"
 
 
 def test_main_reads_text_from_stdin(monkeypatch, capsys):
-    _stub_classify(monkeypatch)
+    _stub_agent(monkeypatch)
     monkeypatch.setattr("sys.stdin", io.StringIO("some agent instructions"))
-    rc = cli.main(["-"])
-    assert rc == 0
+    cli.main(["-"])
     assert json.loads(capsys.readouterr().out)["title"] == "X"
 
 
 def test_main_empty_stdin_errors(monkeypatch):
     monkeypatch.setattr("sys.stdin", io.StringIO(""))
-    assert cli.main(["-"]) == 2
+    with pytest.raises(SystemExit, match="no input provided on stdin"):
+        cli.main(["-"])
 
 
 def test_main_missing_path_errors():
-    assert cli.main(["/no/such/path/really-not-here"]) == 2
+    with pytest.raises(SystemExit, match="no such path"):
+        cli.main(["/no/such/path/really-not-here"])

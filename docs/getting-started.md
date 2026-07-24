@@ -24,9 +24,10 @@ export ANTHROPIC_API_KEY=sk-ant-...
 ### From Python
 
 ```python
-from agent_classifier import classify
+from agent_classifier import build_agent, classify
 
-result = classify("./path/to/agent")   # directory, file path, text blob, or dict
+agent = build_agent()
+result = classify("./path/to/agent", agent=agent)  # directory, file, text, or dict
 print(result.domain, result.category, result.overall_risk, result.confidence)
 
 for risk in result.risks:

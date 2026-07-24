@@ -11,6 +11,9 @@ Examples::
 import argparse
 import sys
 from pathlib import Path
+from typing import cast
+
+STDIN_MARKER = Path("-")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -22,7 +25,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "source",
         nargs="?",
-        default="-",
+        type=Path,
+        default=STDIN_MARKER,
         help="Path to an agent directory or file, or '-' to read text from stdin.",
     )
     parser.add_argument(
@@ -39,45 +43,40 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-o",
         "--output",
+        type=Path,
         default=None,
         help="Write the JSON result to this file instead of stdout.",
     )
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> None:
     """Run the classifier from the command line and print/write JSON."""
     args = build_parser().parse_args(argv)
 
-    if args.source == "-":
+    if args.source == STDIN_MARKER:
         source: object = sys.stdin.read()
         if not str(source).strip():
-            print("error: no input provided on stdin", file=sys.stderr)
-            return 2
+            sys.exit("error: no input provided on stdin")
     else:
-        source = Path(args.source)
+        source = cast(Path, args.source)
         if not source.exists():
-            print(f"error: no such path: {source}", file=sys.stderr)
-            return 2
+            sys.exit(f"error: no such path: {source}")
 
     # Imported here so `--help` and the error paths above never pay for loading
     # the heavy agent / deepagents stack.
-    from .agent import classify
+    from .agent import build_agent, classify
 
-    result = classify(
-        source,
-        model=args.model,
-        use_enrichment=not args.no_enrichment,
-    )
+    agent = build_agent(model=args.model, use_enrichment=not args.no_enrichment)
+    result = classify(source, agent=agent)
     payload = result.model_dump_json(indent=2)
 
     if args.output:
-        Path(args.output).write_text(payload, encoding="utf-8")
+        args.output.write_text(payload, encoding="utf-8")
         print(f"wrote {args.output}")
     else:
         print(payload)
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
