@@ -34,11 +34,10 @@ flowchart LR
 
 ## Install
 
-Requires **Python 3.13+**.
+Requires **Python 3.13+** and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e .            # add ".[dev]" for the test dependencies
+uv sync                     # add --extra dev for the test dependencies
 cp .env.example .env        # then fill in your ANTHROPIC_API_KEY
 ```
 
@@ -89,8 +88,8 @@ goal and risk carries an `evidence` field to keep the output grounded, and
 ## Testing
 
 ```bash
-pytest                 # offline: schema, taxonomy, input adapters, agent wiring
-python tests/eval.py   # end-to-end eval on the sample agent (needs an API key)
+uv run pytest                 # offline: schema, taxonomy, input adapters, agent wiring
+uv run python tests/eval.py   # end-to-end eval on the sample agent (needs an API key)
 ```
 
 The offline suite runs without credentials — `test_agent_build.py` compiles the full
@@ -103,10 +102,10 @@ All quality tools are wired through **pre-commit** and mirrored in CI
 (`.github/workflows/quality.yml`) and **nox**. Set up the git hook once:
 
 ```bash
-pip install -e ".[dev]"
-pre-commit install          # run the checks on every commit
-pre-commit run --all-files  # or run them on demand
-nox                         # or run the full suite in isolated envs
+uv sync --extra dev
+uv run pre-commit install          # run the checks on every commit
+uv run pre-commit run --all-files  # or run them on demand
+uv run nox                         # or run the full suite in isolated envs
 ```
 
 One convention spans every tool: **88-column line length** (Black's default, Python's

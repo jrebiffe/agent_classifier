@@ -19,9 +19,21 @@ nox.options.sessions = [
     "tests",
 ]
 nox.options.reuse_existing_virtualenvs = True
+nox.options.default_venv_backend = "uv"
 
 PYTHON = "3.13"
 PATHS = ("src", "tests")
+
+
+def _uv_sync(session: nox.Session, *extras: str) -> None:
+    # Sync straight from uv.lock into the session's own venv, so nox sessions
+    # get exactly the same resolution as CI instead of a fresh pip resolve.
+    args = ["uv", "sync", "--locked"]
+    for extra in extras:
+        args += ["--extra", extra]
+    session.run_install(
+        *args, env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location}
+    )
 
 
 def _markdown_files() -> list[str]:
@@ -42,7 +54,7 @@ def _markdown_files() -> list[str]:
 @nox.session(python=PYTHON)
 def lint(session: nox.Session) -> None:
     """Run ruff (lint + format check), flake8, black --check, and isort."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     session.run("ruff", "check", *PATHS)
     session.run("ruff", "format", "--check", *PATHS)
     session.run("flake8", *PATHS)
@@ -53,14 +65,14 @@ def lint(session: nox.Session) -> None:
 @nox.session(python=PYTHON)
 def typecheck(session: nox.Session) -> None:
     """Run mypy static type checking."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     session.run("mypy")
 
 
 @nox.session(python=PYTHON)
 def security(session: nox.Session) -> None:
     """Bandit code scan and pip-audit dependency scan."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     session.run("bandit", "-q", "-c", "pyproject.toml", "-r", "src")
     session.run("pip-audit", "--progress-spinner=off")
 
@@ -68,14 +80,14 @@ def security(session: nox.Session) -> None:
 @nox.session(python=PYTHON)
 def deps(session: nox.Session) -> None:
     """Dependency hygiene with deptry."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     session.run("deptry", ".")
 
 
 @nox.session(python=PYTHON)
 def docstrings(session: nox.Session) -> None:
     """Docstring coverage (interrogate) and conventions (pydocstyle)."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     session.run("interrogate", "-c", "pyproject.toml", "src")
     session.run("pydocstyle", "src")
 
@@ -83,7 +95,7 @@ def docstrings(session: nox.Session) -> None:
 @nox.session(python=PYTHON)
 def markdown(session: nox.Session) -> None:
     """Check Markdown formatting, structure, and prose quality."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     md_files = _markdown_files()
     session.run(
         "mdformat",
@@ -101,12 +113,12 @@ def markdown(session: nox.Session) -> None:
 @nox.session(python=PYTHON)
 def docs(session: nox.Session) -> None:
     """Build the documentation site with strict checks (the docs gate)."""
-    session.install("-e", ".[docs]")
+    _uv_sync(session, "docs")
     session.run("mkdocs", "build", "--strict")
 
 
 @nox.session(python=PYTHON)
 def tests(session: nox.Session) -> None:
     """Run the test suite with coverage."""
-    session.install("-e", ".[dev]")
+    _uv_sync(session, "dev")
     session.run("pytest")

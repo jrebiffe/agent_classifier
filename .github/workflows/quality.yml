@@ -15,26 +15,24 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
+          enable-cache: true
 
       - name: Install
-        run: |
-          python -m pip install --upgrade pip setuptools
-          pip install -e ".[dev]"
+        run: uv sync --locked --extra dev
 
       # Lint, format-check, type-check, static security, docstrings, secrets,
       # and file hygiene — all via the pre-commit hooks (single source of truth).
       - name: pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: uv run pre-commit run --all-files --show-diff-on-failure
 
       - name: deptry (dependency hygiene)
-        run: deptry .
+        run: uv run deptry .
 
       - name: pip-audit (dependency CVEs)
-        run: pip-audit --progress-spinner=off
+        run: uv run pip-audit --progress-spinner=off
 
       - name: tests
-        run: pytest
+        run: uv run pytest

@@ -3,7 +3,7 @@
 #
 # The Python tools run as `system` hooks so they use the versions pinned in
 # pyproject.toml's [dev] extra (one source of version truth). Install them
-# first with: pip install -e ".[dev]"
+# first with: uv sync --extra dev
 minimum_pre_commit_version: "3.8.0"
 
 repos:

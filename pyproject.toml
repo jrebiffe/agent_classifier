@@ -212,3 +212,10 @@ DEP002 = ["langchain-anthropic"]
 # ---------------------------------------------------------------------------
 [tool.codespell]
 skip = "./.git,./.venv,./.nox,./.cache,./site,./build,./dist,*.lock,./.secrets.baseline,./coverage.xml"
+
+# ---------------------------------------------------------------------------
+# uv — CI and dev containers are Linux-only (ubuntu-latest), so the lockfile
+# doesn't need to resolve macOS/Windows/other-arch wheels.
+# ---------------------------------------------------------------------------
+[tool.uv]
+environments = ["sys_platform == 'linux'"]
